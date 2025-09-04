@@ -1,6 +1,7 @@
 const express = require("express");
 const foodController = require("../controllers/food.controller");
 const authMiddleware = require("../middlewares/auth.middleware");
+const authEither = authMiddleware.authEither;
 const router = express.Router();
 const multer = require("multer");
 
@@ -18,6 +19,18 @@ router.post(
 
 /* GET /api/food/ [protected] */
 router.get("/", authMiddleware.authUserMiddleware, foodController.getFoodItems);
+router.post("/like", authEither, foodController.likeFood);
 
+router.post(
+  "/save",
+  authMiddleware.authUserMiddleware,
+  foodController.saveFood
+);
+
+router.get(
+  "/save",
+  authMiddleware.authUserMiddleware,
+  foodController.getSaveFood
+);
 
 module.exports = router;

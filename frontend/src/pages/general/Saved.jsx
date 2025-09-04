@@ -1,27 +1,27 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import "../../styles/reels.css";
+import axios from "axios";
 import ReelFeed from "../../components/ReelFeed";
 
-const Home = () => {
+const Saved = () => {
   const [videos, setVideos] = useState([]);
-  // Autoplay behavior is handled inside ReelFeed
 
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/food", { withCredentials: true })
+      .get("http://localhost:3000/api/food/save", { withCredentials: true })
       .then((response) => {
-        console.log(response.data);
-
-        setVideos(response.data.foodItems);
-      })
-      .catch(() => {
-        /* noop: optionally handle error */
+        const savedFoods = response.data.savedFoods.map((item) => ({
+          _id: item.food._id,
+          video: item.food.video,
+          description: item.food.description,
+          likeCount: item.food.likeCount,
+          savesCount: item.food.savesCount,
+          commentsCount: item.food.commentsCount,
+          foodPartner: item.food.foodPartner,
+        }));
+        setVideos(savedFoods);
       });
   }, []);
-
-  // Using local refs within ReelFeed; keeping map here for dependency parity if needed
-
   async function likeVideo(item) {
     const response = await axios.post(
       "http://localhost:3000/api/food/like",
@@ -45,37 +45,33 @@ const Home = () => {
       );
     }
   }
-
-  async function saveVideo(item) {
-    const response = await axios.post(
-      "http://localhost:3000/api/food/save",
-      { foodId: item._id },
-      { withCredentials: true }
-    );
-
-    if (response.data.save) {
+  const removeSaved = async (item) => {
+    try {
+      await axios.post(
+        "http://localhost:3000/api/food/save",
+        { foodId: item._id },
+        { withCredentials: true }
+      );
       setVideos((prev) =>
         prev.map((v) =>
-          v._id === item._id ? { ...v, savesCount: v.savesCount + 1 } : v
+          v._id === item._id
+            ? { ...v, savesCount: Math.max(0, (v.savesCount ?? 1) - 1) }
+            : v
         )
       );
-    } else {
-      setVideos((prev) =>
-        prev.map((v) =>
-          v._id === item._id ? { ...v, savesCount: v.savesCount - 1 } : v
-        )
-      );
+    } catch {
+      // noop
     }
-  }
+  };
 
   return (
     <ReelFeed
       items={videos}
       onLike={likeVideo}
-      onSave={saveVideo}
-      emptyMessage="No videos available."
+      onSave={removeSaved}
+      emptyMessage="No saved videos yet."
     />
   );
 };
 
-export default Home;
+export default Saved;
