@@ -3,6 +3,8 @@ const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const authRoutes = require("./routes/auth.routes.js");
 const foodRoutes = require("./routes/food.routes.js");
+const foodPartnerRoutes = require("./routes/food-partner.routes");
+
 const cors = require("cors");
 
 dotenv.config();
@@ -26,5 +28,6 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/food", foodRoutes);
+app.use("/api/food-partner", foodPartnerRoutes);
 
 module.exports = app;
